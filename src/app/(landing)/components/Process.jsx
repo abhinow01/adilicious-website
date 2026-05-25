@@ -3,20 +3,26 @@
 import { useEffect, useState } from 'react';
 
 export default function Process() {
-  const steps = [
-    {
-      title: 'Appetizer',
-      description: 'Discovery, brand immersion, audience research, and understanding what your audience actually craves.',
-    },
-    {
-      title: 'Main Course',
-      description: 'Creative strategy, production, storytelling, and campaign execution served at full strength.',
-    },
-    {
-      title: 'Dessert',
-      description: 'Optimization, performance refinement, reporting, and scaling what leaves the strongest aftertaste.',
-    },
-  ];
+const steps = [
+  {
+    title: 'Appetizer',
+    description:
+      'Discovery, brand immersion, audience research, and understanding what your audience actually craves.',
+    video: '/videos/appetizers.mp4',
+  },
+  {
+    title: 'Main Course',
+    description:
+      'Creative strategy, production, storytelling, and campaign execution served at full strength.',
+    video: '/videos/main-course.mp4',
+  },
+  {
+    title: 'Dessert',
+    description:
+      'Optimization, performance refinement, reporting, and scaling what leaves the strongest aftertaste.',
+    video: '/videos/dessert.mp4',
+  },
+];
 
   const [activeStep, setActiveStep] = useState(0);
 
@@ -40,6 +46,24 @@ export default function Process() {
 
   return (
     <section id="process-section" className="relative h-[300vh] bg-stone-100">
+      <div className="absolute inset-0 z-0">
+  {steps.map((step, index) => (
+    <video
+      key={step.title}
+      src={step.video}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      className={`
+        absolute inset-0 h-full w-full object-cover
+        transition-opacity duration-700 ease-in-out
+        ${activeStep === index ? 'opacity-100' : 'opacity-0'}
+      `}
+    />
+  ))}
+</div>
       <div className="sticky top-0 h-screen overflow-hidden">
         <div
           className="absolute inset-0 opacity-40"
@@ -47,11 +71,12 @@ export default function Process() {
             backgroundImage:
               'repeating-linear-gradient(45deg, rgba(120,113,108,0.05) 0px, rgba(120,113,108,0.05) 2px, transparent 2px, transparent 20px)',
           }}
+        
         />
 
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.8),transparent_40%)]" />
 
-        <div className="relative flex h-full items-center justify-center px-6">
+        <div className="relative z-30 flex h-full items-center justify-center px-6">
           <div className="relative h-[720px] w-full max-w-5xl">
             <div className="absolute bottom-20 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-black/10 blur-3xl" />
 
