@@ -170,7 +170,7 @@ function PlateSection() {
 
         <div className="plate-intro">
           <div style={{ opacity: introOpacity, transform: `translateY(${introY}px)` }}>
-            <div className="plate-intro-eyebrow">— Tonight's Menu —</div>
+            <div className="plate-intro-eyebrow">— Tonight&apos;s Menu —</div>
             <div className="plate-intro-title">
               Eight courses,<br/>served à la carte.
             </div>
@@ -214,10 +214,10 @@ function Reservation() {
       <div className="reservation-inner">
         <div>
           <div className="reservation-eyebrow">— Book a Table —</div>
-          <h2 className="reservation-title">Tell us<br/>what you're <em>hungry</em><br/>for.</h2>
+          <h2 className="reservation-title">Tell us<br/>what you&apos;re <em>hungry</em><br/>for.</h2>
           <p className="reservation-sub">
             We take a limited number of campaigns a year — same way a small
-            kitchen handles dinner service. Send the brief. We'll get back
+            kitchen handles dinner service. Send the brief. We&apos;ll get back
             within two business days with a tasting menu of ideas.
           </p>
           <div className="reservation-contacts">
