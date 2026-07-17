@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "gsap": "^3.15.0",
+    "locomotive-scroll": "^5.0.1",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
