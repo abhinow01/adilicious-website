@@ -11,13 +11,6 @@ const HERO_SLIDES = [
     role: 'Concept, Direction & Edit',
   },
   {
-    video: '/videos/main-course.mp4',
-    tag: '— Now Serving · Spot 02 —',
-    title: <>Midnight<br/><em>Commute</em></>,
-    client: 'For Hexa Mobility',
-    role: 'Campaign Film',
-  },
-  {
     video: '/videos/dessert.mp4',
     tag: '— Now Serving · Spot 03 —',
     title: <>Sweet on<br/><em>Strangers</em></>,
@@ -37,7 +30,11 @@ export default function HeroCarousel() {
   const [idx, setIdx] = useState(0);
   const total = HERO_SLIDES.length;
   const timerRef = useRef(null);
+  const videoRef = useRef(null);
 
+  useEffect(() => {
+    videoRef.current?.play()?.catch(() => {});
+  }, [idx]);
   useEffect(() => {
     timerRef.current = setTimeout(() => {
       setIdx((i) => (i + 1) % total);
@@ -53,36 +50,32 @@ export default function HeroCarousel() {
   return (
     <section className="hero">
       <div className="hero-stage">
-        {HERO_SLIDES.map((s, i) => (
-          <div key={i} className={"hero-slide " + (i === idx ? 'active' : '')}>
-            <div className="hero-slide-canvas">
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  minWidth: '100%',
-                  minHeight: '100%',
-                  transform: 'translate(-50%, -50%)',
-                  objectFit: 'cover'
-                }}
-              >
-                <source src={s.video} type="video/mp4" />
-              </video>
-            </div>
+        <div className="hero-slide active">
+          <div className="hero-slide-canvas">
+            <video
+              key={idx}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                minWidth: '100%',
+                minHeight: '100%',
+                transform: 'translate(-50%, -50%)',
+                objectFit: 'cover'
+              }}
+            >
+              <source
+                src={HERO_SLIDES[idx].video}
+                type="video/mp4"
+              />
+            </video>
           </div>
-        ))}
-      </div>
-
-      <div className="hero-sound">
-        <div className="hero-sound-bars">
-          <span></span><span></span><span></span><span></span><span></span>
         </div>
-        <div className="hero-sound-label">Sound · On</div>
       </div>
 
       <div className="hero-dots">

@@ -1,5 +1,5 @@
 'use client';
-
+import clsx from 'clsx';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 const MENU = [
@@ -112,7 +112,6 @@ function Ticker() {
 function PlateSection() {
   const outerRef = useRef(null);
   const [progress, setProgress] = useState(0);
-
   useEffect(() => {
     let raf = 0;
     const update = () => {
@@ -170,7 +169,7 @@ function PlateSection() {
 
         <div className="plate-intro">
           <div style={{ opacity: introOpacity, transform: `translateY(${introY}px)` }}>
-            <div className="plate-intro-eyebrow">— Tonight's Menu —</div>
+            <div className="plate-intro-eyebrow">— Tonight&apos;s Menu —</div>
             <div className="plate-intro-title">
               Eight courses,<br/>served à la carte.
             </div>
@@ -210,14 +209,14 @@ function PlateSection() {
 function Reservation() {
   const [submitted, setSubmitted] = useState(false);
   return (
-    <section className="reservation" id="reserve">
-      <div className="reservation-inner">
-        <div>
+    <section id="reserve" className="reservation px-5 md:px-10 lg:px-[56px] py-20 lg:py-[120px] relative overflow-hidden">
+      <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-[80px] items-start">
+        <div className='flex flex-col gap-2 lg:gap-4'>
           <div className="reservation-eyebrow">— Book a Table —</div>
-          <h2 className="reservation-title">Tell us<br/>what you're <em>hungry</em><br/>for.</h2>
-          <p className="reservation-sub">
+          <h2 className="reservation-title">Tell us<br/>what you&apos;re <em>hungry</em><br/>for.</h2>
+          <p className="reservation-sub sm:text-[14px] lg:text-[22px] leading-[1.4] w-full flex flex-row flex-wrap">
             We take a limited number of campaigns a year — same way a small
-            kitchen handles dinner service. Send the brief. We'll get back
+            kitchen handles dinner service. Send the brief. We&apos;ll get back
             within two business days with a tasting menu of ideas.
           </p>
           <div className="reservation-contacts">
@@ -240,7 +239,7 @@ function Reservation() {
             <label>Email</label>
             <input type="email" placeholder="you@brand.com" />
           </div>
-          <div className="field-row">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
             <div className="field">
               <label>Party size (budget)</label>
               <select defaultValue="">
@@ -283,7 +282,7 @@ function Footer() {
         <div className="footer-top">
           <div className="footer-brand">
             <img src="/assets/logo-cream-new.png" alt="Adilicious" />
-            <div className="footer-tag">
+            <div className="hidden lg:footer-tag">
               An ad agency that thinks like a restaurant. Brooklyn &amp; Mexico City, est. 2021.
             </div>
           </div>

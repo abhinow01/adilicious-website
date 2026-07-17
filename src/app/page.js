@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import HeroCarousel from '../components/HeroCarousel';
 import { Ticker, PlateSection, Reservation, Footer } from '../components/Plate';
-
+import Image from 'next/image';
+import useIsMobile from '@/hooks/useIsMobile';
 const TWEAK_DEFAULTS = { fontPreset: 'Classic', tableColor: '#b8332b' };
 
 const FONT_PRESETS = {
@@ -42,7 +43,10 @@ export default function Home() {
   const [t, setTweak] = useState(TWEAK_DEFAULTS);
   const [isDarkLogo, setIsDarkLogo] = useState(false);
   const reserveRef = useRef(null);
-
+  const isMobile = useIsMobile();
+  const [showNav, setShowNav] = useState(true);
+  const lastScrollY = useRef(0);
+  
   useEffect(() => {
     const preset = FONT_PRESETS[t.fontPreset] || FONT_PRESETS.Display;
     const r = document.documentElement.style;
@@ -63,10 +67,13 @@ export default function Home() {
 
   useEffect(() => {
     const handleScroll = () => {
+      const currentScrollY = window.scrollY;
       if (reserveRef.current) {
         const rect = reserveRef.current.getBoundingClientRect();
         setIsDarkLogo(rect.top < 100);
       }
+      setShowNav(window.scrollY <= 10);
+
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -76,11 +83,14 @@ export default function Home() {
 
   return (
     <>
-      <nav className="nav">
-        <div className="nav-logo">
-          <img 
+<nav className={`nav ${showNav ? 'nav-visible' : 'nav-hidden'}`}>        
+  <div className="nav-logo">
+          <Image 
             src={isDarkLogo ? "/assets/logo-dark.png" : "/assets/logo-cream-new.png"} 
             alt="Adilicious" 
+            width={isMobile ? 50 : 75}
+            height={isMobile ? 50 : 75}
+            priority
           />
         </div>
         <div className="nav-links">
