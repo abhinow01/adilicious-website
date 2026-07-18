@@ -5,6 +5,8 @@ import HeroCarousel from '../components/HeroCarousel';
 import { Ticker, PlateSection, Reservation, Footer } from '../components/Plate';
 import Image from 'next/image';
 import useIsMobile from '@/hooks/useIsMobile';
+import HangingSignLoader from '@/components/loader';
+import { motion } from "framer-motion";
 const TWEAK_DEFAULTS = { fontPreset: 'Classic', tableColor: '#b8332b' };
 
 const FONT_PRESETS = {
@@ -41,10 +43,13 @@ function shade(hex, amt) {
 
 export default function Home() {
   const [t, setTweak] = useState(TWEAK_DEFAULTS);
+  const [loading, setLoading] = useState(true);
+  const [showLoader, setShowLoader] = useState(true);
   const [isDarkLogo, setIsDarkLogo] = useState(false);
   const reserveRef = useRef(null);
   const isMobile = useIsMobile();
   const [showNav, setShowNav] = useState(true);
+  const [contentReady, setContentReady] = useState(false);
   const lastScrollY = useRef(0);
   
   useEffect(() => {
@@ -80,9 +85,42 @@ export default function Home() {
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setContentReady(true);
+    }, 5200);
 
+    return () => clearTimeout(timer);
+  }, []);
+
+  // if (loading) {
+  //   return (
+  //     <div>
+  //       { showLoader && (
+  //       <HangingSignLoader
+  //       logoSrc="/assets/logo-white.png"
+  //       companyName="Adilicious"
+  //       onFinished={() => setShowLoader(false)}
+  //     />
+  //       )
+  //       }
+  //     </div>
+      
+  //   );
+  // }
   return (
-    <>
+  <>
+
+  <div className='relative'>
+    {showLoader && (
+        <HangingSignLoader
+          logoSrc="/assets/logo-white.png"
+          companyName="Adilicious"
+          onFinished={() => setShowLoader(false)} // ONLY this unmounts the loader
+        />
+      )}
+  {contentReady && (
+  <div>
 <nav className={`nav ${showNav ? 'nav-visible' : 'nav-hidden'}`}>        
   <div className="nav-logo">
           <Image 
@@ -109,6 +147,11 @@ export default function Home() {
         <Reservation />
       </div>
       <Footer />
+      </div>
+  )
+}
+      </div>
+  
     </>
   );
 }
