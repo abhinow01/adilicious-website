@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect, useState ,useRef } from "react";
 import { motion, useAnimation } from "motion/react";
 
 export default function HangingSignLoader({
@@ -11,7 +11,7 @@ export default function HangingSignLoader({
   const overlayControls = useAnimation();
   // Initialize to "intro" immediately so initial renders match
   const [phase, setPhase] = useState("intro"); 
-
+  const hasRun = useRef(false);
   // String sway keyframes per phase
   const leftStringD = {
     intro: ["M10,0 Q10,100 10,200", "M10,0 Q28,90 10,200", "M10,0 Q-8,110 10,200", "M10,0 Q20,96 10,200", "M10,0 Q-2,104 10,200", "M10,0 Q10,100 10,200"],
@@ -30,6 +30,8 @@ export default function HangingSignLoader({
   const durations = { intro: 2.2, flip: 1.8, settle: 1.2, exit: .5 };
 
   useEffect(() => {
+    if (hasRun.current) return; // skip StrictMode's phantom first invocation
+    hasRun.current = true;
     async function run() {
       // 1. Intro Sway
       await controls.start({
@@ -46,11 +48,11 @@ export default function HangingSignLoader({
       });
 
       // 3. Settle Down
-      setPhase("settle");
-      await controls.start({
-        rotateZ: [2, -2, 1, -1, 0],
-        transition: { duration: 1.2, ease: "easeInOut" }
-      });
+      // setPhase("settle");
+      // await controls.start({
+      //   rotateZ: [2, -2, 1, -1, 0],
+      //   transition: { duration: 1.2, ease: "easeInOut" }
+      // });
 
       // 4. Exit Slide Upward
       setPhase("exit");
