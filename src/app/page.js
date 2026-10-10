@@ -2,11 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 import HeroCarousel from '../components/HeroCarousel';
-import { Ticker, PlateSection, Reservation, Footer } from '../components/Plate';
+import { Reservation, Footer } from '../components/Plate';
+import PlateSection from '@/components/PlateSection';
+import Manifesto from '@/components/Manifesto';
+import SayHello from '@/components/SayHello';
+import SmoothScroll from '@/components/SmoothScroll';
+import StackOver from '@/components/StackOver';
+import { ScrollSmoother } from '@/lib/gsap';
 import Image from 'next/image';
 import useIsMobile from '@/hooks/useIsMobile';
 import HangingSignLoader from '@/components/loader';
-import { motion } from "framer-motion";
 const TWEAK_DEFAULTS = { fontPreset: 'Classic', tableColor: '#b8332b' };
 
 const FONT_PRESETS = {
@@ -85,6 +90,16 @@ export default function Home() {
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  const scrollToHash = (e) => {
+    const id = e.currentTarget.getAttribute('href');
+    const target = id && document.querySelector(id);
+    if (!target) return;
+    e.preventDefault();
+    const smoother = ScrollSmoother.get();
+    if (smoother) smoother.scrollTo(target, true, 'top top');
+    else target.scrollIntoView({ behavior: 'smooth' });
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setContentReady(true);
@@ -132,21 +147,29 @@ export default function Home() {
           />
         </div>
         <div className="nav-links">
-          <a href="#menu">Menu</a>
-          <a href="#kitchen">Kitchen</a>
-          <a href="#reviews">Reviews</a>
-          <a href="#reel">The Reel</a>
+          <a href="#kitchen" onClick={scrollToHash}>Kitchen</a>
+          <a href="#menu" onClick={scrollToHash}>Menu</a>
+          <a href="#reserve" onClick={scrollToHash}>Book</a>
+          <a href="#hello" onClick={scrollToHash}>Say hello</a>
         </div>
-        <a className="nav-cta" href="#reserve">Reserve a Table</a>
+        <a className="nav-cta" href="#reserve" onClick={scrollToHash}>Reserve a Table</a>
       </nav>
 
-      <HeroCarousel />
-      <Ticker />
-      <PlateSection />
-      <div ref={reserveRef}>
-        <Reservation />
-      </div>
-      <Footer />
+      {/* fixed elements (nav, loader) stay outside SmoothScroll */}
+      <SmoothScroll>
+        <StackOver>
+          <HeroCarousel />
+        </StackOver>
+        <Manifesto />
+        <PlateSection />
+        <StackOver>
+          <div ref={reserveRef}>
+            <Reservation />
+          </div>
+        </StackOver>
+        <SayHello />
+        <Footer />
+      </SmoothScroll>
       </div>
   )
 }

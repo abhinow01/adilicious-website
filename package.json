@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "clsx": "^2.1.1",
     "gsap": "^3.15.0",
     "locomotive-scroll": "^5.0.1",
@@ -23,7 +24,6 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4"
   },
-  
   "browserslist": [
     "> 0.5%",
     "last 2 versions",
