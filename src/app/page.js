@@ -168,7 +168,7 @@ export default function Home() {
           </div>
         </StackOver>
         <SayHello />
-        <Footer />
+        {/* <Footer /> */}
       </SmoothScroll>
       </div>
   )
