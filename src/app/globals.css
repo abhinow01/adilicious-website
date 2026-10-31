@@ -816,7 +816,7 @@ a { text-decoration: none; }
   z-index: 1;
   font-family: var(--font-sans);
   background: var(--cream);
-  padding: 0 16px;
+  padding: 16px;
 }
 .plate-stage {
   --plate-d: min(80vw, 1600px);              /* 80% of the width */
