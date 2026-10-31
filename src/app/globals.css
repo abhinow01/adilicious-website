@@ -1380,3 +1380,17 @@ a { text-decoration: none; }
   .hello-pin { height: auto; min-height: 100vh; }
   .hello-stage { position: relative; min-height: 60vh; }
 }
+
+/* Shown only to editors in draft-preview mode (never to visitors). */
+.draft-badge {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 10000;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font: 600 12px/1 system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}

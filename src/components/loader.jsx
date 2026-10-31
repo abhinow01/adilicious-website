@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from "react";
 import { motion, useAnimation, MotionConfig } from "motion/react";
+import Image from "next/image";
 
 export default function HangingSignLoader({
   logoSrc = "/logo-cream-new.png",
@@ -199,9 +200,14 @@ export default function HangingSignLoader({
                 borderRadius: "10%"
               }}
             >
-              <img
+              <Image
                 src={logoSrc}
                 alt={companyName}
+                width={1080}
+                height={1080}
+                sizes="224px"
+                loading="eager"
+                fetchPriority="high"
                 className="h-[70%] w-[70%] object-contain"
               />
             </div>

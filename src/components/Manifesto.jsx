@@ -3,19 +3,21 @@
 import { useRef } from 'react';
 import { gsap, SplitText, useGSAP, prefersReducedMotion } from '@/lib/gsap';
 import { Ticker } from './Plate';
+import { useSmootherReady } from './SmoothScroll';
 
 /**
  * Slides over the hero, then pins while the manifesto "reads itself" word by word
- * (Apple-style scrubbed text). Replace the copy with your own house rules.
+ * (Apple-style scrubbed text). Copy comes from the CMS (Home page → House rules).
  */
-export default function Manifesto() {
+export default function Manifesto({ eyebrow, text: copy, signature, ticker }) {
+  const ready = useSmootherReady();
   const root = useRef(null);
   const body = useRef(null);
   const text = useRef(null);
 
   useGSAP(() => {
-    if (prefersReducedMotion()) return;
-    const split = SplitText.create(text.current, { type: 'words', wordsClass: 'mf-word' });
+    if (!ready || prefersReducedMotion()) return;
+    const split = SplitText.create(text.current, { type: 'words', wordsClass: 'mf-word', aria: 'none' });
 
     gsap.timeline({
       scrollTrigger: {
@@ -30,18 +32,17 @@ export default function Manifesto() {
       .fromTo('.mf-sign', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.3');
 
     return () => split.revert();
-  }, { scope: root });
+  }, { scope: root, dependencies: [ready, copy] });
 
   return (
     <section className="manifesto slide-card" ref={root} id="kitchen">
-      <Ticker />
+      <Ticker items={ticker} />
       <div className="manifesto-body" ref={body}>
-        <div className="manifesto-eyebrow">— House rules —</div>
+        <div className="manifesto-eyebrow">{eyebrow}</div>
         <p className="manifesto-text" ref={text}>
-          We&apos;re a kitchen, not a factory. Every idea is cooked to order — slow where it matters,
-          fast where it counts. No reheated trends. No microwaved content. Just honest work, served hot.
+          {copy}
         </p>
-        <div className="mf-sign">— The Chefs, Adilicious</div>
+        <div className="mf-sign">{signature}</div>
       </div>
     </section>
   );

@@ -1,64 +1,55 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { renderDisplayText } from '@/sanity/text';
+import { sanityImageUrl } from '@/sanity/image';
 
-const HERO_SLIDES = [
-  {
-    video: '/videos/appetizers.mp4',
-    tag: '— Now Serving · Spot 01 —',
-    title: <>The Crave<br/><em>Manifesto</em></>,
-    client: 'For Solano Hot Sauce',
-    role: 'Concept, Direction & Edit',
-  },
-  {
-    video: '/videos/dessert.mp4',
-    tag: '— Now Serving · Spot 03 —',
-    title: <>Sweet on<br/><em>Strangers</em></>,
-    client: 'For Marigold Confections',
-    role: 'Brand Anthem',
-  },
-  {
-    video: '/videos/dessert.mp4',
-    tag: '— Now Serving · Spot 04 —',
-    title: <>Lights, Or<br/><em>Whatever</em></>,
-    client: 'For Bayside Studios',
-    role: 'Series Identity',
-  },
-];
-
-export default function HeroCarousel() {
+/**
+ * @param {{ slides: Array, reelLabel?: string, active: boolean }} props
+ * `active` turns on once the intro loader has finished: the video starts loading and the slide
+ * timer starts then, exactly as before the CMS (when the hero only mounted at that moment).
+ * Before that, the slide text is still in the HTML for search engines.
+ */
+export default function HeroCarousel({ slides, reelLabel, active }) {
   const [idx, setIdx] = useState(0);
-  const total = HERO_SLIDES.length;
+  const total = slides.length;
   const timerRef = useRef(null);
   const videoRef = useRef(null);
+  const slide = slides[idx] ?? {};
 
   useEffect(() => {
     videoRef.current?.play()?.catch(() => {});
-  }, [idx]);
+  }, [idx, active]);
   useEffect(() => {
+    if (!active || total < 2) return;
     timerRef.current = setTimeout(() => {
       setIdx((i) => (i + 1) % total);
     }, 7000);
     return () => clearTimeout(timerRef.current);
-  }, [idx, total]);
+  }, [idx, total, active]);
 
   const go = (i) => {
     clearTimeout(timerRef.current);
     setIdx(((i % total) + total) % total);
   };
 
+  const poster = sanityImageUrl(slide.poster, { width: 1920, quality: 70 });
+
   return (
     <section className="hero">
       <div className="hero-stage">
         <div className="hero-slide active">
           <div className="hero-slide-canvas">
+            {active && slide.videoSrc && (
             <video
+              ref={videoRef}
               key={idx}
               autoPlay
               muted
               loop
               playsInline
               preload="auto"
+              poster={poster}
               style={{
                 position: 'absolute',
                 top: '50%',
@@ -70,17 +61,18 @@ export default function HeroCarousel() {
               }}
             >
               <source
-                src={HERO_SLIDES[idx].video}
+                src={slide.videoSrc}
                 type="video/mp4"
               />
             </video>
+            )}
           </div>
         </div>
       </div>
 
       <div className="hero-dots">
-        {HERO_SLIDES.map((_, i) => (
-          <button key={i}
+        {slides.map((s, i) => (
+          <button key={s._key ?? i}
             className={"hero-dot " + (i === idx ? 'active' : '')}
             onClick={() => go(i)}
             aria-label={`Show ad ${i + 1}`}></button>
@@ -88,24 +80,24 @@ export default function HeroCarousel() {
       </div>
 
       <div className="hero-overlay">
-        <div className="hero-tag">{HERO_SLIDES[idx].tag}</div>
-        <h1 className="hero-title">{HERO_SLIDES[idx].title}</h1>
+        <div className="hero-tag">{slide.tag}</div>
+        <h2 className="hero-title">{renderDisplayText(slide.title)}</h2>
         <div className="hero-meta">
           <div className="hero-client">
-            {HERO_SLIDES[idx].client}
-            <span>{HERO_SLIDES[idx].role}</span>
+            {slide.client}
+            <span>{slide.role}</span>
           </div>
           <div className="hero-client" style={{textAlign: 'right'}}>
-            Reel · 2024–26
+            {reelLabel}
             <span style={{opacity: 0.6}}>{String(idx + 1).padStart(2,'0')} / {String(total).padStart(2,'0')}</span>
           </div>
         </div>
       </div>
 
       <div className="hero-progress">
-        {HERO_SLIDES.map((_, i) => (
+        {slides.map((s, i) => (
           <div key={i + '-' + idx}
-            className={"hero-progress-bar " + (i === idx ? 'active' : i < idx ? 'done' : '')}>
+            className={"hero-progress-bar " + (active && i === idx ? 'active' : i < idx ? 'done' : '')}>
             <span></span>
           </div>
         ))}

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { gsap, useGSAP, prefersReducedMotion } from '@/lib/gsap';
+import { useSmootherReady } from './SmoothScroll';
 
 /**
  * "Slide-over" stacking effect.
@@ -15,11 +16,13 @@ import { gsap, useGSAP, prefersReducedMotion } from '@/lib/gsap';
  * screen, so nothing is hidden before the user has seen it.
  */
 export default function StackOver({ children, className = '', scale = 0.9, dim = 0.6, radius = 32, ...rest }) {
+  const ready = useSmootherReady();
   const outer = useRef(null);
   const inner = useRef(null);
   const shade = useRef(null);
 
   useGSAP(() => {
+    if (!ready) return;
     const el = outer.current;
     const isTall = () => el.offsetHeight > window.innerHeight + 1;
     const reduce = prefersReducedMotion();
@@ -44,7 +47,7 @@ export default function StackOver({ children, className = '', scale = 0.9, dim =
         },
         { scale: reduce ? 1 : scale, borderRadius: radius, ease: 'none' }, 0)
       .fromTo(shade.current, { opacity: 0 }, { opacity: dim, ease: 'none' }, 0);
-  }, { scope: outer });
+  }, { scope: outer, dependencies: [ready] });
 
   return (
     <div ref={outer} className={'stack-over ' + className} {...rest}>

@@ -52,6 +52,11 @@ span from `yPercent: 110` to `0` — the text appears to rise out of a slot. See
 ## Rules that will save you hours
 
 - No `position: sticky` inside ScrollSmoother — use `pin`.
+- Any component that creates ScrollTriggers must wait for the smoother: `const ready = useSmootherReady()`
+  (from `SmoothScroll.jsx`), then `if (!ready) return;` inside `useGSAP` with `dependencies: [ready]`.
+  The smoother starts when the intro loader finishes (`<SmoothScroll enabled={introDone}>`), while the
+  page content itself is already in the server HTML for search engines.
+- Copy comes from the CMS as props. Never hardcode text in components (see CMS.md).
 - No `scroll-behavior: smooth` in CSS — it fights ScrollTrigger (removed from `globals.css`).
 - Create animations inside `useGSAP(() => { … }, { scope: ref })` — it cleans them up on unmount.
 - After anything changes layout (images, fonts, accordions), call `ScrollTrigger.refresh()`.

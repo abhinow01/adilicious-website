@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { gsap, useGSAP, prefersReducedMotion } from '@/lib/gsap';
+import { useSmootherReady } from './SmoothScroll';
 
 /**
  * Finale: slides over the reservation section, then (pinned) scrubs:
@@ -9,12 +10,15 @@ import { gsap, useGSAP, prefersReducedMotion } from '@/lib/gsap';
  *   2. "hello" rises letter by letter, huge — the loudest word on the page
  *   3. "hello" lifts to the top and a postcard slides up over the section
  * The postcard is a real form that posts to /api/postcard.
+ * All copy comes from the CMS (Home page → Say hello).
  */
-export default function SayHello() {
+export default function SayHello({ smallWords = '', bigWord = '', subline, postcard = {}, thanks = {} }) {
+  const ready = useSmootherReady();
   const root = useRef(null);
   const pin = useRef(null);
 
   useGSAP(() => {
+    if (!ready) return;
     const reduce = prefersReducedMotion();
     const mm = gsap.matchMedia();
 
@@ -56,39 +60,44 @@ export default function SayHello() {
     });
 
     return () => mm.revert();
-  }, { scope: root });
+  }, { scope: root, dependencies: [ready, smallWords, bigWord] });
 
   return (
     <section id="hello" className="hello slide-card" ref={root}>
       <div className="hello-pin" ref={pin}>
         <div className="hello-stage">
           <p className="hello-line" aria-hidden="true">
-            <span className="hello-mask"><span className="hello-small">come</span></span>
-            <span className="hello-mask"><span className="hello-small">say</span></span>
+            {smallWords.split(/\s+/).filter(Boolean).map((w, i) => (
+              <span key={i} className="hello-mask"><span className="hello-small">{w}</span></span>
+            ))}
           </p>
-          <h2 className="hello-word" aria-label="Come say hello">
-            {'hello'.split('').map((ch, i) => (
+          <h2 className="hello-word" aria-label={`${smallWords} ${bigWord}`.trim()}>
+            {bigWord.split('').map((ch, i) => (
               <span key={i} className="hello-mask" aria-hidden="true">
                 <span className="hello-letter">{ch}</span>
               </span>
             ))}
           </h2>
-          <p className="hello-sub">Questions, compliments, a half-baked idea — the kitchen reads every postcard.</p>
+          <p className="hello-sub">{subline}</p>
         </div>
 
         <div className="postcard-wrap">
-          <Postcard />
+          <Postcard copy={postcard} thanks={thanks} />
         </div>
       </div>
     </section>
   );
 }
 
-function Postcard() {
+const noopSubscribe = () => () => {};
+const todayLabel = () => new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+function Postcard({ copy, thanks }) {
   const card = useRef(null);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
   const [name, setName] = useState('');
-  const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  // The postmark shows the visitor's date: empty in the prerendered HTML, filled in the browser.
+  const today = useSyncExternalStore(noopSubscribe, todayLabel, () => '');
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -124,14 +133,14 @@ function Postcard() {
       {/* FRONT — the writing side */}
       <form className="postcard-face postcard-front" onSubmit={onSubmit}>
         <div className="pc-left">
-          <div className="pc-greeting">Dear Adilicious,</div>
+          <div className="pc-greeting">{copy.greeting}</div>
           <label className="sr-only" htmlFor="pc-message">Your message</label>
           <textarea id="pc-message" name="message" className="pc-message" required maxLength={1200}
-            placeholder="Write your message here…" />
+            placeholder={copy.messagePlaceholder} />
           <div className="pc-sign">
-            <span>Yours,</span>
+            <span>{copy.signOff}</span>
             <label className="sr-only" htmlFor="pc-name">Your name</label>
-            <input id="pc-name" name="name" required maxLength={80} placeholder="your name" autoComplete="name" />
+            <input id="pc-name" name="name" required maxLength={80} placeholder={copy.namePlaceholder} autoComplete="name" />
           </div>
         </div>
 
@@ -140,28 +149,25 @@ function Postcard() {
         <div className="pc-right">
           <div className="pc-top">
             <div className="pc-postmark" aria-hidden="true">
-              <span>ADILICIOUS</span><strong>{today}</strong><span>DELHI · 110008</span>
+              <span>{copy.postmarkTop}</span><strong>{today}</strong><span>{copy.postmarkBottom}</span>
             </div>
             <div className="pc-stamp" aria-hidden="true">
               <img src="/assets/logo-dark.png" alt="" />
-              <span>Est. 2026</span>
+              <span>{copy.stampText}</span>
             </div>
           </div>
 
           <div className="pc-address">
-            <div className="pc-line"><span>To</span><strong>The Kitchen, Adilicious</strong></div>
-            <div className="pc-line"><span>Shadipur meets Karampura</span></div>
+            <div className="pc-line"><span>{copy.toLabel}</span><strong>{copy.toName}</strong></div>
+            <div className="pc-line"><span>{copy.addressLine}</span></div>
             <div className="pc-line">
-              <label htmlFor="pc-email">Reply to</label>
-              <input id="pc-email" type="email" name="email" required maxLength={120} placeholder="you@email.com" autoComplete="email" />
+              <label htmlFor="pc-email">{copy.replyToLabel}</label>
+              <input id="pc-email" type="email" name="email" required maxLength={120} placeholder={copy.emailPlaceholder} autoComplete="email" />
             </div>
             <div className="pc-line">
-              <label htmlFor="pc-topic">About</label>
-              <select id="pc-topic" name="topic" defaultValue="Just saying hi">
-                <option>Just saying hi</option>
-                <option>A project idea</option>
-                <option>Working with you</option>
-                <option>Press</option>
+              <label htmlFor="pc-topic">{copy.topicLabel}</label>
+              <select id="pc-topic" name="topic" defaultValue={copy.topics?.[0]}>
+                {(copy.topics ?? []).map((t) => <option key={t}>{t}</option>)}
               </select>
             </div>
           </div>
@@ -170,7 +176,7 @@ function Postcard() {
           <input type="text" name="company" tabIndex={-1} autoComplete="off" className="pc-hp" aria-hidden="true" />
 
           <button className="pc-send" type="submit" disabled={status === 'sending'}>
-            {status === 'sending' ? 'Posting…' : status === 'error' ? 'Didn’t go through — try again' : 'Drop in the postbox →'}
+            {status === 'sending' ? copy.sendingLabel : status === 'error' ? copy.errorLabel : copy.sendLabel}
           </button>
         </div>
 
@@ -181,10 +187,10 @@ function Postcard() {
       <div className="postcard-face postcard-back" aria-live="polite">
         {status === 'sent' && (
           <>
-            <div className="pc-back-eyebrow">— Received in the kitchen —</div>
-            <div className="pc-back-title">Thank you{name ? `, ${name}` : ''}.</div>
-            <p className="pc-back-copy">Your postcard is pinned to the pass. A chef will write back within two working days.</p>
-            <button className="pc-again" type="button" onClick={reset}>Write another</button>
+            <div className="pc-back-eyebrow">{thanks.eyebrow}</div>
+            <div className="pc-back-title">{thanks.title}{name ? `, ${name}` : ''}.</div>
+            <p className="pc-back-copy">{thanks.text}</p>
+            <button className="pc-again" type="button" onClick={reset}>{thanks.againLabel}</button>
           </>
         )}
       </div>

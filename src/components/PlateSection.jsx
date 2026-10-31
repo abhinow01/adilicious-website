@@ -1,39 +1,39 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { gsap, ScrollTrigger, ScrollSmoother, useGSAP, prefersReducedMotion } from '@/lib/gsap';
+import { useSmootherReady } from './SmoothScroll';
+import { renderDisplayText } from '@/sanity/text';
+import { sanityImageUrl } from '@/sanity/image';
 
-export const MENU = [
-  { num: '01', name: 'Appetizers',   label: 'Brand Discovery',     desc: 'Strategy / Research / Positioning' },
-  { num: '02', name: 'Mains',        label: 'Concept Films',       desc: 'Big-idea TV & streaming spots' },
-  { num: '03', name: 'Sides',        label: 'Social Cutdowns',     desc: 'Vertical, square, tasty bites' },
-  { num: '04', name: 'Specials',     label: 'Limited Drops',       desc: 'Stunt campaigns / Collabs' },
-  { num: '05', name: 'Desserts',     label: 'Animation & VFX',     desc: 'CG, mograph, finishing' },
-  { num: '06', name: 'Drinks',       label: 'Sound & Music',       desc: 'Original scoring, sonic ID' },
-  { num: '07', name: 'Bread Basket', label: 'Always-on Content',   desc: 'Editorial calendars / Series' },
-  { num: '08', name: 'House Wine',   label: 'Influencer Pairings', desc: 'Casting, talent, partnerships' },
-];
+const pad = (n) => String(n).padStart(2, '0');
 
-const POSTERS = [
-  { client: 'Solano',   art: 'linear-gradient(135deg,#d8472d,#f4b13a 60%,#5a1a08)' },
-  { client: 'Hexa',     art: 'linear-gradient(180deg,#2e7e8e,#0a1f2c)' },
-  { client: 'Marigold', art: 'radial-gradient(circle at 30% 30%,#f1c87a,#6a1b2a 70%)' },
-  { client: 'Bayside',  art: 'linear-gradient(180deg,#142224,#5e7172)' },
-  { client: 'Folio',    art: 'linear-gradient(135deg,#f0e3b5,#c89a3f 70%,#5a3a08)' },
-  { client: 'Pulse',    art: 'radial-gradient(ellipse at 50% 60%,#1f4d6e,#0e273b 70%)' },
-  { client: 'Lichen',   art: 'linear-gradient(135deg,#3a4a2a,#7a8a4a 60%,#1a2010)' },
-  { client: 'Halocene', art: 'linear-gradient(135deg,#f4d4c2,#e89878 60%,#a85838)' },
-  { client: 'Drift',    art: 'radial-gradient(circle at 40% 40%,#e8e4d4,#9a8a6a 80%)' },
-  { client: 'Vesper',   art: 'linear-gradient(180deg,#1a0e08,#4a2818 70%,#a86a3a)' },
-];
-
-const N = MENU.length;
-const STEP = 360 / N;
 const PX_PER_COURSE = 260;   // wheel distance (px) to move one course
 const RELEASE_PX = 160;      // extra scrolling at the first/last course before the page takes over
 const SNAP_DELAY = 180;      // ms of no input before the plate settles on the nearest course
 
-export default function PlateSection() {
+/**
+ * Content comes from the CMS (Home page → Menu): `courses` are the menu courses in plate order,
+ * `posters` the work shown on the wall behind the plate.
+ */
+export default function PlateSection({ eyebrow, title, markerLabel, courses = [], posters: works = [] }) {
+  const ready = useSmootherReady();
+  const MENU = useMemo(
+    () => courses.map((c, i) => ({ id: c._id, num: pad(i + 1), name: c.name, label: c.label, desc: c.description })),
+    [courses],
+  );
+  const POSTERS = useMemo(
+    () => works.map((w) => ({
+      client: w.client,
+      background: w.posterImage?.url
+        ? `center / cover no-repeat url("${sanityImageUrl(w.posterImage, { width: 480, height: 300 })}")`
+        : w.posterArt,
+    })),
+    [works],
+  );
+  const N = MENU.length;
+  const STEP = 360 / N;
+
   const root = useRef(null);
   const stage = useRef(null);
   const rig = useRef(null);
@@ -50,6 +50,7 @@ export default function PlateSection() {
 
   // ---------------------------------------------------------------- main plate behaviour
   useGSAP(() => {
+    if (!ready || N < 2) return;
     const reduce = prefersReducedMotion();
     const stageEl = stage.current;
     const state = { p: 0 };        // rendered progress, 0 = course 01, 1 = course 08
@@ -206,7 +207,7 @@ export default function PlateSection() {
       stageEl.removeEventListener('touchmove', onTouchMove);
       stageEl.removeEventListener('touchend', onTouchEnd);
     };
-  }, { scope: root });
+  }, { scope: root, dependencies: [ready, N] });
 
   // ---------------------------------------------------------------- course card swap
   useGSAP(() => {
@@ -215,7 +216,7 @@ export default function PlateSection() {
       { yPercent: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power3.out', overwrite: true });
   }, { dependencies: [active], scope: root });
 
-  const current = MENU[active];
+  const current = MENU[Math.min(active, N - 1)] ?? {};
   const hint =
     mode === 'end' ? 'That’s the full menu — keep scrolling ↓'
     : mode === 'spinning' ? `Course ${active + 1} of ${N}`
@@ -245,7 +246,7 @@ export default function PlateSection() {
           <div className="plate-posters-track">
             {[...POSTERS, ...POSTERS].map((p, i) => (
               <div key={i} className="poster" style={{ '--rot': (((i * 37) % 7) - 3) + 'deg' }}>
-                <div className="poster-art" style={{ background: p.art }} />
+                <div className="poster-art" style={{ background: p.background }} />
                 <div className="poster-label"><span>{p.client}</span><span>№ {String((i % POSTERS.length) + 1).padStart(2, '0')}</span></div>
               </div>
             ))}
@@ -262,7 +263,7 @@ export default function PlateSection() {
             <div className="plate-well" />
             <div className="plate-disc" ref={disc}>
               {MENU.map((m, i) => (
-                <div key={m.num} className="plate-label" style={{ transform: `rotate(${i * STEP}deg)` }}>
+                <div key={m.id} className="plate-label" style={{ transform: `rotate(${i * STEP}deg)` }}>
                   <div ref={(el) => { labels.current[i] = el; }} className={'rim-label' + (i === active ? ' active' : '')}>
                     {m.num}
                   </div>
@@ -273,25 +274,25 @@ export default function PlateSection() {
           <div className="plate-sheen" ref={sheen} />
         </div>
 
-        <div className="plate-marker" aria-hidden="true"><span>Tonight&apos;s pick</span></div>
+        <div className="plate-marker" aria-hidden="true"><span>{markerLabel}</span></div>
 
         <header className="plate-intro">
-          <div className="plate-intro-eyebrow">— Tonight&apos;s Menu —</div>
-          <div className="plate-intro-title">Eight courses,<br />served à la carte.</div>
+          <div className="plate-intro-eyebrow">{eyebrow}</div>
+          <div className="plate-intro-title">{renderDisplayText(title)}</div>
         </header>
 
         <div className={'plate-hint ' + mode} aria-live="polite">{hint}</div>
 
         <div className="plate-info" ref={info}>
           <div className="plate-info-eyebrow" data-reveal>— Course No. {current.num} —</div>
-          <h3 className="plate-info-name" data-reveal>{current.name}</h3>
+          <h2 className="plate-info-name" data-reveal>{current.name}</h2>
           <div className="plate-info-sub" data-reveal>{current.label}</div>
           <div className="plate-info-desc" data-reveal>{current.desc}</div>
         </div>
 
         <div className="plate-progress">
           {MENU.map((m, i) => (
-            <button key={m.num}
+            <button key={m.id}
               className={'plate-progress-dot ' + (i === active ? 'active' : i < active ? 'done' : '')}
               onClick={() => api.current.goTo(i)}
               aria-label={`Go to course ${m.num}: ${m.name}`}>
